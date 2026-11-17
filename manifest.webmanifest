@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Fieldnote Crop Health",
+  "short_name": "Fieldnote",
+  "description": "A field assistant for checking crop symptoms and getting diagnosis guidance.",
+  "lang": "en-UG",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7f8f2",
+  "theme_color": "#356d4a",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "assets/fieldnote-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/fieldnote-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

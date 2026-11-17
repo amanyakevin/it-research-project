@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#e9ede2">
+    <meta name="description" content="An on-device crop health research prototype for cassava and maize.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Fieldnote">
+    <title>Fieldnote — Crop health, clearer</title>
+    <link rel="icon" type="image/png" href="assets/fieldnote-mark.png">
+    <link rel="apple-touch-icon" href="assets/fieldnote-icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+    <script src="assets/onnxruntime-web-1.22.0.min.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Fieldnote home">
+        <img class="brand-mark" src="assets/fieldnote-mark.png" alt="">
+        <span>fieldnote</span>
+      </a>
+      <span class="topbar-note" id="ai-status"><span class="status-dot"></span> On-device AI research prototype</span>
+      <button class="install-button" id="install-button" type="button">Install app</button>
+      <p class="install-help" id="install-help" role="status" hidden></p>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">A little more certainty in the field</p>
+        <h1>A clearer next step<br class="desktop-break"> for every field check.</h1>
+        <p class="intro-copy">Choose cassava or maize and upload a leaf photo. This research prototype classifies a few leaf conditions directly on your phone; it has not been validated on Ugandan farms.</p>
+        <div class="trust-note">
+          <span class="trust-icon" aria-hidden="true">✳</span>
+          <span>Guidance to support your judgement—not replace a local agricultural expert.</span>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Crop diagnosis form">
+        <form id="diagnosis-form" novalidate>
+          <div class="form-heading">
+            <div>
+              <p class="eyebrow">New check</p>
+              <h2>Show us what you’re seeing</h2>
+            </div>
+            <span class="step-label">01 <span>/</span> 02</span>
+          </div>
+
+          <label class="field-label" for="crop">What are you growing?</label>
+          <select id="crop" name="crop" required>
+            <option value="" selected disabled>Select a crop</option>
+            <option value="cassava">Cassava</option>
+            <option value="maize">Maize</option>
+          </select>
+          <p class="field-help">Prototype classes: cassava mosaic, maize rust, and maize blight. Other conditions may be missed.</p>
+
+          <label class="field-label symptom-label" for="observation">What change do you notice?</label>
+          <select id="observation" name="symptom">
+            <option value="unsure" selected>I'm not sure yet</option>
+            <option value="mosaic">Mottled or mosaic-like leaf color</option>
+            <option value="curling">Curled or misshapen leaves</option>
+            <option value="yellowing">Leaves turning yellow</option>
+            <option value="spots">Spots or patches on leaves</option>
+            <option value="wilting">Wilting or drooping</option>
+            <option value="holes">Holes or visible insects</option>
+          </select>
+          <p class="field-help">This does not change the model result, but helps tailor next-step guidance when the photo is unclear.</p>
+
+          <label class="field-label photo-label" for="photo">Add a photo <span>Required</span></label>
+          <input class="visually-hidden" id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required>
+          <div class="upload-area" id="upload-area" role="button" tabindex="0" aria-describedby="photo-help">
+            <div class="upload-empty" id="upload-empty">
+              <div class="upload-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14.5v4A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <strong>Take a photo or choose a file</strong>
+              <span>JPG, PNG or WebP · Up to 10 MB</span>
+            </div>
+            <div class="preview-wrap" id="preview-wrap" hidden>
+              <img id="preview-image" alt="Preview of selected crop photo">
+              <button class="remove-photo" id="remove-photo" type="button" aria-label="Remove selected photo">×</button>
+              <span class="preview-caption" id="preview-caption"></span>
+            </div>
+          </div>
+          <p class="field-help" id="photo-help">For best results, photograph the affected area in natural light and keep it in focus.</p>
+
+          <details class="more-details">
+            <summary>Add a little more detail <span>Optional</span></summary>
+            <div class="details-fields">
+              <label class="field-label" for="symptoms">Anything else we should know?</label>
+              <textarea id="symptoms" name="symptoms" rows="3" maxlength="1000" placeholder="When did it start? Is it affecting one plant or many?"></textarea>
+              <label class="field-label" for="region">Location <span>Optional</span></label>
+              <input id="region" name="region" type="text" maxlength="120" autocomplete="address-level1" placeholder="District in Uganda (optional)">
+              <p class="field-help">A general location can help tailor guidance. No precise location is needed.</p>
+            </div>
+          </details>
+
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <button class="submit-button" id="submit-button" type="submit" disabled>
+            <span id="submit-label">Analyze photo &amp; get recommendations</span>
+            <span class="button-arrow" aria-hidden="true">→</span>
+          </button>
+          <p class="field-help">Choose a crop and photo, then tap the button. Findings and next steps will appear below.</p>
+          <p class="privacy-note"><span aria-hidden="true">⌑</span> The photo is analyzed on this phone and is not uploaded. Symptom choices can tailor general guidance but do not change the model result; notes and location are not used. After the app and model are cached, image classification can work offline.</p>
+        </form>
+
+        <aside class="side-panel">
+          <div class="side-art" aria-hidden="true">
+            <img class="side-photo" src="assets/field-scouting.png" alt="">
+            <div class="art-caption">Good observations<br>grow good decisions.</div>
+          </div>
+          <div class="tips">
+            <p class="eyebrow">A useful photo</p>
+            <ul>
+              <li><span>01</span> Photograph the whole affected leaf or area.</li>
+              <li><span>02</span> Include a healthy part for comparison.</li>
+              <li><span>03</span> Avoid shadows, blur, and busy backgrounds.</li>
+            </ul>
+          </div>
+        </aside>
+      </section>
+
+      <section class="result-section" id="result-section" aria-live="polite" hidden>
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow">Your field note</p>
+            <h2 id="result-title">Possible cause</h2>
+          </div>
+          <span class="result-badge" id="result-badge"></span>
+        </div>
+        <p class="result-summary" id="result-summary"></p>
+        <div class="result-grid">
+          <article class="result-card">
+            <h3>What to check in the field</h3>
+            <ul id="signs-list"></ul>
+          </article>
+          <article class="result-card">
+            <h3>Practical next steps while you confirm</h3>
+            <div class="advice-group">
+              <p class="advice-label">Local / low-cost options</p>
+              <ul id="local-list"></ul>
+            </div>
+            <div class="advice-group">
+              <p class="advice-label">Evidence-based / expert options</p>
+              <ul id="modern-list"></ul>
+            </div>
+          </article>
+        </div>
+        <p class="result-caution" id="result-caution"></p>
+        <button class="text-button" id="new-check" type="button">Start another check <span aria-hidden="true">↗</span></button>
+      </section>
+
+    </main>
+
+    <footer>
+      <span class="footer-brand"><img src="assets/fieldnote-mark.png" alt=""> fieldnote <span class="footer-dot">·</span> Made for the people who grow our food.</span>
+      <span>Uganda-first <span class="footer-dot">·</span> Animals planned for a later phase</span>
+    </footer>
+  </body>
+</html>
